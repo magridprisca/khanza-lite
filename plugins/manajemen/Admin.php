@@ -16,6 +16,10 @@ class Admin extends AdminModule
 
     public function getDashboard()
     {
+        $date = date('Y-m-d');
+      if(isset($_POST['periode_dashboard']) && $_POST['periode_dashboard'] !='')
+        $date = $_POST['periode_dashboard'];
+
       $this->core->addCSS(url(MODULES.'/manajemen/css/admin/style.css'));
       $this->core->addJS(url(BASE_DIR.'/assets/jscripts/Chart.bundle.min.js'));
 
@@ -24,7 +28,7 @@ class Admin extends AdminModule
       $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
       $stats['getYearVisities'] = number_format($this->countYearVisite(),0,'','.');
       $stats['getMonthVisities'] = number_format($this->countMonthVisite(),0,'','.');
-      $stats['getCurrentVisities'] = number_format($this->countCurrentVisite(),0,'','.');
+      $stats['getCurrentVisities'] = number_format($this->countCurrentVisite($date),0,'','.');
       $stats['getLastYearVisities'] = number_format($this->countLastYearVisite(),0,'','.');
       $stats['getLastMonthVisities'] = number_format($this->countLastMonthVisite(),0,'','.');
       $stats['getLastCurrentVisities'] = number_format($this->countLastCurrentVisite(),0,'','.');
@@ -41,8 +45,9 @@ class Admin extends AdminModule
         $stats['percentMonth'] = number_format((($this->countMonthVisite()-$this->countLastMonthVisite())/$this->countMonthVisite())*100,0,'','.');
       }
       $stats['percentDays'] = 0;
-      if($this->countCurrentVisite() != 0) {
-        $stats['percentDays'] = number_format((($this->countCurrentVisite()-$this->countLastCurrentVisite())/$this->countCurrentVisite())*100,0,'','.');
+      
+      if($this->countCurrentVisite($date) != 0) {
+        $stats['percentDays'] = number_format((($this->countCurrentVisite($date)-$this->countLastCurrentVisite())/$this->countCurrentVisite($date))*100,0,'','.');
       }
       $stats['poliChart'] = $this->poliChart();
       $stats['KunjunganTahunChart'] = $this->KunjunganTahunChart();
@@ -148,9 +153,9 @@ class Admin extends AdminModule
     }
 
 
-    public function countCurrentVisite()
+    public function countCurrentVisite($date)
     {
-        $date = date('Y-m-d');
+       
         $record = $this->core->mysql('reg_periksa')
             ->select([
                 'count' => 'COUNT(DISTINCT no_rawat)',
@@ -830,7 +835,7 @@ class Admin extends AdminModule
         $stats['poliChart'] = $this->poliChartBatal();
         $stats['poliChartBaru'] = $this->poliChartBaru();
         $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
-        $stats['getCurrentVisities'] = number_format($this->countCurrentVisite(),0,'','.');
+        $stats['getCurrentVisities'] = number_format($this->countCurrentVisite($date),0,'','.');
         $stats['getCurrentVisitiesBatal'] = number_format($this->countCurrentVisiteBatal('Batal'),0,'','.');
         $stats['getCurrentVisitiesBaru'] = number_format($this->countCurrentVisiteBaru(),0,'','.');
         $stats['percentTotal'] = 0;
@@ -838,8 +843,8 @@ class Admin extends AdminModule
             $stats['percentTotal'] = number_format((($this->countVisite()-$this->countVisiteNoRM())/$this->countVisite())*100,0,'','.');
         }
         $stats['percentDays'] = 0;
-        if($this->countCurrentVisite() != 0) {
-            $stats['percentDays'] = number_format((($this->countCurrentVisite()-$this->countLastCurrentVisite())/$this->countCurrentVisite())*100,0,'','.');
+        if($this->countCurrentVisite($date) != 0) {
+            $stats['percentDays'] = number_format((($this->countCurrentVisite($date)-$this->countLastCurrentVisite())/$this->countCurrentVisite($date))*100,0,'','.');
         }
         $stats['percentDaysBatal'] = 0;
         if($this->countCurrentVisiteBatal('Batal') != 0) {

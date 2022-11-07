@@ -13,6 +13,30 @@
 </ul>
 <br>
 <div class="row">
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="btn-group pull-right" style="margin-top:-8px;">
+                <span class="btn btn-sm dropdown-toggle" data-toggle="dropdown">
+                    <i class="fa fa-calendar"></i><span class="hidden-xs"> Periode Antrol</span>
+                </span>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    <form class="" action="{?=url([ADMIN,'manajemen','dashboard'])?}" method="POST">
+                    <li style="padding-left:5px;padding-right:5px;">
+                    <input type="date"  class="form-control periode_dashboard" name="periode_dashboard" required>
+                    </li>
+                    <li style="padding-left:5px;padding-right:5px;margin-top:5px;">
+                    <input type="submit" name="" class="btn btn-primary btn-block" value="Submit">
+                    </li>
+                    </form>
+                </ul>
+                </div>
+                <h3 class="panel-title">TEST</h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-3 col-sm-6 col-xs-12">
         <div class="panel panel-default">
               <div class="panel-body bg-danger">
@@ -328,6 +352,12 @@
                 maintainAspectRatio: false
             }
         });
+        $('.periode_dashboard').datetimepicker({
+            defaultDate: "{?=date('Y-m-d')?}",
+            format: 'YYYY-MM-DD',
+            locale: 'id'
+        });
     });
 
 </script>
+

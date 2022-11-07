@@ -3,14 +3,20 @@ if (!version_compare(PHP_VERSION, '5.5.0', '>=')) {
     exit("mLITE requires at least <b>PHP 5.5</b>");
 }
 
-define('DBHOST', '127.0.0.1');
-define('DBPORT', '3306');
-define('DBUSER', 'mlite_dev');
-define('DBPASS', 'mlite_dev');
-define('DBNAME', 'mlite_dev');
+define('DBHOST', '192.168.1.28');
+define('DBPORT', '3307');
+define('DBUSER', 'root');
+define('DBPASS', 'hospital19#');
+define('DBNAME', 'sik_sept');
+
+// define('DBHOST', 'localhost');
+// define('DBPORT', '3306');
+// define('DBUSER', 'root');
+// define('DBPASS', '');
+// define('DBNAME', 'sik1');
 
 // URL Webapps
-define('WEBAPPS_URL', 'http://mlite.loc/webapps');
+define('WEBAPPS_URL', 'http://localhost/khanza-lite/webapps');
 define('WEBAPPS_PATH', BASE_DIR . '/webapps');
 
 // Admin cat name
@@ -47,6 +53,6 @@ define('BASIC_MODULES', serialize([
 ]));
 
 // Developer mode
-define('DEV_MODE', true);
+define('DEV_MODE', false);
 
 ?>
