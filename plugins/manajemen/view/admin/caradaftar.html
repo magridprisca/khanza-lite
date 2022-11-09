@@ -1,11 +1,11 @@
 <ul class="nav nav-tabs">
     <li><a href="{?=url([ADMIN,'manajemen','dashboard'])?}">Dashboard</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','pendaftaran'])?}">Pendaftaran</a></li>
-    <li><a href="{?=url([ADMIN,'manajemen','caradaftar'])?}">Cara Daftar</a></li>
+    <li class="active"><a href="{?=url([ADMIN,'manajemen','caradaftar'])?}">Cara Daftar</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','rawatjalan'])?}">Rawat Jalan</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','rawatinap'])?}">Rawat Inap</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','dokter'])?}">Dokter</a></li>
-    <li class="active"><a href="{?=url([ADMIN,'manajemen','laboratorium'])?}">Laboratorium</a></li>
+    <li><a href="{?=url([ADMIN,'manajemen','laboratorium'])?}">Laboratorium</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','radiologi'])?}">Radiologi</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','apotek'])?}">Apotek</a></li>
     <li><a href="{?=url([ADMIN,'manajemen','farmasi'])?}">Farmasi</a></li>
@@ -14,19 +14,45 @@
 </ul>
 <br>
 <div class="row">
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="btn-group pull-right" style="margin-top:-8px;">
+                <span class="btn btn-sm dropdown-toggle" data-toggle="dropdown">
+                    <i class="fa fa-calendar"></i><span class="hidden-xs"> Periode</span>
+                </span>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    <form class="" action="{?=url([ADMIN,'manajemen','caradaftar'])?}" method="POST">
+                    <li style="padding-left:5px;padding-right:5px;">
+                    <input type="date"  class="form-control periode_caradaftar" name="periode_caradaftar" value="{?= $tgl ?}"required>
+                    </li><li style="padding-left:5px;padding-right:5px;">
+                    <input type="date"  class="form-control periode_caradaftar2" name="periode_caradaftar2" value="{?= $tgl2 ?}"required>
+                    </li>
+                    <li style="padding-left:5px;padding-right:5px;margin-top:5px;">
+                    <input type="submit" name="" class="btn btn-primary btn-block" value="Submit">
+                    </li>
+                    </form>
+                </ul>
+                </div>
+                <h3 class="panel-title">Periode Cara Daftar</h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-3 col-sm-6 col-xs-12">
         <div class="panel panel-default">
               <div class="panel-body bg-danger">
                     <span class="fa-2x fa-stack fa-lg pull-left">
                         <i class="fa fa-calendar-plus-o fa-stack-1x"></i>
                     </span>
-                    <div class="stat-title text-grey">Total Kunjungan</div>
+                    <div class="stat-title text-grey">Kunjungan Total</div>
                     <div class="stat-bold">
-                        {?= $stats.getVisities ?}
-                        <span class="stat-up-down">
+                        {?= $stats.getCurrentCaraDaftarHariIni ?}
+                        <!-- <span class="stat-up-down">
                             <i class="fa fa-arrow-circle-{if: $stats.percentTotal >= 0}up{else}down{/if}"></i>
                             ({?= $stats.percentTotal ?}%)
-                        </span>
+                        </span> -->
                     </div>
               </div>
         </div>
@@ -35,15 +61,15 @@
         <div class="panel panel-default">
               <div class="panel-body bg-info">
                     <span class="fa-2x fa-stack fa-lg pull-left">
-                        <i class="fa fa-calendar fa-stack-1x"></i>
+                        <i class="fa fa-hospital-o fa-stack-1x"></i>
                     </span>
-                    <div class="stat-title text-grey">Pasien Cek Lab Hari Ini</div>
+                    <div class="stat-title text-grey">Cara Daftar Offline</div>
                     <div class="stat-bold">
-                        {?= $stats.getLab ?}
-                        <span class="stat-up-down">
+                        {?= $stats.getCurrentCaraDaftarOffline ?}
+                        <!-- <span class="stat-up-down">
                             <i class="fa fa-arrow-circle-{if: $stats.percentDays >= 0}up{else}down{/if}"></i>
                             ({?= $stats.percentDays ?}%)
-                        </span>
+                        </span> -->
                     </div>
               </div>
         </div>
@@ -52,15 +78,15 @@
         <div class="panel panel-default">
               <div class="panel-body bg-warning">
                     <span class="fa-2x fa-stack fa-lg pull-left">
-                        <i class="fa fa-users fa-stack-1x"></i>
+                        <i class="fa fa-globe fa-stack-1x"></i>
                     </span>
-                    <div class="stat-title text-grey">Pasien Cek Lab Bulan Ini</div>
+                    <div class="stat-title text-grey">Cara Daftar Online</div>
                     <div class="stat-bold">
-                        {?= $stats.getLabMonthly ?}
-                        <span class="stat-up-down">
+                        {?= $stats.getCurrentCaraDaftarOnline ?}
+                        <!-- <span class="stat-up-down">
                             <i class="fa fa-arrow-circle-{if: $stats.percentDaysBaru >= 0}up{else}down{/if}"></i>
-                            ({?= $stats.percentMonths ?}%)
-                        </span>
+                            ({?= $stats.percentDaysBaru ?}%)
+                        </span> -->
                     </div>
               </div>
         </div>
@@ -69,15 +95,15 @@
         <div class="panel panel-default">
               <div class="panel-body bg-success">
                     <span class="fa-2x fa-stack fa-lg pull-left">
-                        <i class="fa fa-wheelchair fa-stack-1x"></i>
+                        <i class="fa fa-mobile-phone fa-stack-1x"></i>
                     </span>
-                    <div class="stat-title text-grey">Pasien Cek Lab Tahun Ini</div>
+                    <div class="stat-title text-grey">Cara Daftar JKN Mobile</div>
                     <div class="stat-bold">
-                        {?= $stats.getLabYearly ?}
-                        <span class="stat-up-down">
+                        {?= $stats.getCurrentCaraDaftarJKN ?}
+                        <!-- <span class="stat-up-down">
                             <i class="fa fa-arrow-circle-{if: $stats.percentDaysBatal >= 0}up{else}down{/if}"></i>
-                            ({?= $stats.percentYears ?}%)
-                        </span>
+                            ({?= $stats.percentDaysBatal ?}%)
+                        </span> -->
                     </div>
               </div>
         </div>
@@ -88,7 +114,7 @@
     <div class="col-lg-12 col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Dokter Perujuk Hari Ini</h3>
+                <h3 class="panel-title">Cara Daftar Tanggal {?= date("d-m-Y",strtotime($tgl)).' sampai '.date("d-m-Y",strtotime($tgl2)) ?}</h3>
             </div>
             <div class="panel-body">
                 <canvas id="line-chart" height="350"></canvas>
@@ -116,7 +142,7 @@
         var myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ["{?= implode('","', $stats.getDrRujuk.labels) ?}"],
+                labels: ["{?= implode('","', $stats.CaraDaftarChart.labels) ?}"],
                 datasets: [{
                         label: "Pasien",
                         borderColor: "#34316E",
@@ -124,7 +150,7 @@
                         backgroundColor: "rgba(30, 30, 45, 0.2)",
                         pointHighlightStroke: "#1e1e2d",
                         pointRadius: 0,
-                        data: ["{?= implode('","', $stats.getDrRujuk.visits) ?}"],
+                        data: ["{?= implode('","', $stats.CaraDaftarChart.visits) ?}"],
                     }
                 ]
             },
@@ -144,5 +170,37 @@
                 maintainAspectRatio: false
             }
         });
+        // var ctx = document.getElementById("line-chartcanvas");
+        // var myChart = new Chart(ctx, {
+        //     type: 'bar',
+        //     data: {
+        //         labels: ["{?= implode('","', $stats.poliChart.labels) ?}"],
+        //         datasets: [{
+        //                 label: "Pasien",
+        //                 borderColor: "#34316E",
+        //                 borderWidth: "2",
+        //                 backgroundColor: "rgba(30, 30, 45, 0.2)",
+        //                 pointHighlightStroke: "#1e1e2d",
+        //                 pointRadius: 0,
+        //                 data: ["{?= implode('","', $stats.poliChart.visits) ?}"],
+        //             }
+        //         ]
+        //     },
+        //     options: {
+        //         legend: {
+        //             display: false
+        //         },
+        //         responsive: true,
+        //         tooltips: {
+        //             mode: 'index',
+        //             intersect: false
+        //         },
+        //         hover: {
+        //             mode: 'nearest',
+        //             intersect: true
+        //         },
+        //         maintainAspectRatio: false
+        //     }
+        // });
     })
 </script>

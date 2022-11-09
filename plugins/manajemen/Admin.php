@@ -14,11 +14,12 @@ class Admin extends AdminModule
         ];
     }
 
-    public function getDashboard()
+    public function anyDashboard()
     {
         $date = date('Y-m-d');
       if(isset($_POST['periode_dashboard']) && $_POST['periode_dashboard'] !='')
         $date = $_POST['periode_dashboard'];
+        // var_dump($date); die();
 
       $this->core->addCSS(url(MODULES.'/manajemen/css/admin/style.css'));
       $this->core->addJS(url(BASE_DIR.'/assets/jscripts/Chart.bundle.min.js'));
@@ -28,10 +29,10 @@ class Admin extends AdminModule
       $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
       $stats['getYearVisities'] = number_format($this->countYearVisite(),0,'','.');
       $stats['getMonthVisities'] = number_format($this->countMonthVisite(),0,'','.');
-      $stats['getCurrentVisities'] = number_format($this->countCurrentVisite($date),0,'','.');
+      $stats['getCurrentVisities'] = number_format($this->countCurrentVisiteDashboard($date),0,'','.');
       $stats['getLastYearVisities'] = number_format($this->countLastYearVisite(),0,'','.');
       $stats['getLastMonthVisities'] = number_format($this->countLastMonthVisite(),0,'','.');
-      $stats['getLastCurrentVisities'] = number_format($this->countLastCurrentVisite(),0,'','.');
+      $stats['getLastCurrentVisities'] = number_format($this->countLastCurrentVisiteDashboard($date),0,'','.');
       $stats['percentTotal'] = 0;
       if($this->countVisite() != 0) {
         $stats['percentTotal'] = number_format((($this->countVisite()-$this->countVisiteNoRM())/$this->countVisite())*100,0,'','.');
@@ -46,10 +47,10 @@ class Admin extends AdminModule
       }
       $stats['percentDays'] = 0;
       
-      if($this->countCurrentVisite($date) != 0) {
-        $stats['percentDays'] = number_format((($this->countCurrentVisite($date)-$this->countLastCurrentVisite())/$this->countCurrentVisite($date))*100,0,'','.');
+      if($this->countCurrentVisiteDashboard($date) != 0) {
+        $stats['percentDays'] = number_format((($this->countCurrentVisiteDashboard($date)-$this->countLastCurrentVisiteDashboard($date))/$this->countCurrentVisiteDashboard($date))*100,0,'','.');
       }
-      $stats['poliChart'] = $this->poliChart();
+      $stats['poliChart'] = $this->poliChart($date);
       $stats['KunjunganTahunChart'] = $this->KunjunganTahunChart();
       $stats['RanapTahunChart'] = $this->RanapTahunChart();
       $stats['RujukTahunChart'] = $this->RujukTahunChart();
@@ -66,11 +67,12 @@ class Admin extends AdminModule
         'Fri' => 'JUMAT',
         'Sat' => 'SABTU'
       );
-      $hari=$day[date('D',strtotime(date('Y-m-d')))];
+      $hari=$day[date('D',strtotime($date))];
 
       return $this->draw('dashboard.html', [
         'settings' => $settings,
         'stats' => $stats,
+        'tgl' => $date,
         'pasien' => $this->core->mysql('pasien')->join('penjab', 'penjab.kd_pj = pasien.kd_pj')->desc('tgl_daftar')->limit('5')->toArray(),
         'dokter' => $this->core->mysql('dokter')->join('spesialis', 'spesialis.kd_sps = dokter.kd_sps')->join('jadwal', 'jadwal.kd_dokter = dokter.kd_dokter')->where('jadwal.hari_kerja', $hari)->where('dokter.status', '1')->group('dokter.kd_dokter')->rand()->limit('6')->toArray()
       ]);
@@ -83,6 +85,18 @@ class Admin extends AdminModule
             ->select([
                 'count' => 'COUNT(DISTINCT no_rawat)',
             ])
+            ->oneArray();
+
+        return $record['count'];
+    }
+
+    public function countVisiteRanap()
+    {
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('status_lanjut','ranap')
             ->oneArray();
 
         return $record['count'];
@@ -152,10 +166,21 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
-
-    public function countCurrentVisite($date)
+    public function countCurrentVisiteDashboard($date)
     {
        
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('tgl_registrasi', $date)
+            ->oneArray();
+
+        return $record['count'];
+    }
+    public function countCurrentVisite()
+    {
+        $date = date('Y-m-d');
         $record = $this->core->mysql('reg_periksa')
             ->select([
                 'count' => 'COUNT(DISTINCT no_rawat)',
@@ -244,6 +269,21 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
+    public function countLastCurrentVisiteDashboard($date)
+    {
+        $date = strtotime($date);
+        $date = strtotime("-1 day", $date);
+        $date = date('Y-m-d', $date);
+
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('tgl_registrasi', $date)
+            ->oneArray();
+
+        return $record['count'];
+    }
     public function countLastCurrentVisite()
     {
         $date = date('Y-m-d', strtotime('-1 days'));
@@ -268,7 +308,7 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
-    public function poliChart()
+    public function poliChart($date)
     {
 
         $query = $this->core->mysql('reg_periksa')
@@ -277,7 +317,7 @@ class Admin extends AdminModule
               'nm_poli'     => 'nm_poli',
             ])
             ->join('poliklinik', 'poliklinik.kd_poli = reg_periksa.kd_poli')
-            ->where('tgl_registrasi', '>=', date('Y-m-d'))
+            ->where('tgl_registrasi', '=', $date)
             ->group(['reg_periksa.kd_poli'])
             ->desc('nm_poli');
 
@@ -434,6 +474,37 @@ class Admin extends AdminModule
         return $return;
     }
 
+    public function CaraDaftarChart($date,$date2)
+    {
+        
+        $query = $this->core->mysql('reg_periksa')
+            ->select([
+              'count'       => 'COUNT(no_rawat)',
+              'online'     => 'online',
+            ])
+            // ->whereBetween('tgl_registrasi', [$date, $date2])
+            ->where('tgl_registrasi', '>=', $date)
+            ->where('tgl_registrasi', '<=', $date2)
+            ->group(['reg_periksa.online'])
+            ->desc('count');;
+            // ->where('online','online');
+
+
+            $data = $query->toArray();
+                // var_dump($data);die();
+            $return = [
+                'labels'  => [],
+                'visits'  => [],
+            ];
+
+            foreach ($data as $value) {
+                $return['labels'][] = $value['online'];
+                $return['visits'][] = $value['count'];
+            }
+
+        return $return;
+    }
+
     public function presensiChartHari()
     {
             $return = [
@@ -482,6 +553,70 @@ class Admin extends AdminModule
             ])
             ->where('tgl_registrasi', $date)
             ->where('stts_daftar','Baru')
+            ->oneArray();
+
+        return $record['count'];
+    }
+
+    public function countCurrentCaraDaftarHariIni($date,$date2)
+    {
+        
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            // ->whereBetween('tgl_registrasi', [$date, $date2])
+            ->where('tgl_registrasi', '>=', $date)
+            ->where('tgl_registrasi', '<=', $date2)
+            ->oneArray();
+
+        return $record['count'];
+    }
+
+    public function countCurrentCaraDaftarOffline($date,$date2)
+    {
+        // $date = date('Y-m-d');
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            // ->whereBetween('tgl_registrasi', [$date, $date2])
+            ->where('tgl_registrasi', '>=', $date)
+            ->where('tgl_registrasi', '<=', $date2)
+            ->where('online','offline')
+            ->oneArray();
+
+        return $record['count'];
+    }
+
+    public function countCurrentCaraDaftarOnline($date,$date2)
+    {
+        // $date = date('Y-m-d');
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            // ->whereBetween('tgl_registrasi', [$date, $date2])
+            
+            ->where('tgl_registrasi', '>=', $date)
+            ->where('tgl_registrasi', '<=', $date2)
+            ->where('online','online')
+            ->oneArray();
+
+        return $record['count'];
+    }
+
+    public function countCurrentCaraDaftarJKN($date,$date2)
+    {
+        // $date = date('Y-m-d');
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            // ->whereBetween('tgl_registrasi', [$date, $date2])
+            ->where('tgl_registrasi', '>=', $date)
+            ->where('tgl_registrasi', '<=', $date2)
+            ->where('online','jkn')
             ->oneArray();
 
         return $record['count'];
@@ -650,11 +785,21 @@ class Admin extends AdminModule
         $date = date('Y-m-d');
         $arr = is_array($stts) ? 'Yes' : 'No';
         if ($arr == 'Yes') {
-            $poliklinik = implode("','",$stts);
+            $poliklinik = implode("','",    $stts);
         } else {
             $poliklinik = str_replace(",","','", $stts);
         }
         $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(DISTINCT no_rawat) as count FROM kamar_inap WHERE $tgl = '$date' AND stts_pulang IN ('$poliklinik')");
+        $query->execute();
+        $count = $query->fetchColumn();
+        return $count;
+    }
+
+    public function countRanapNow()
+    {
+        // $date = date('Y-m-d');
+        
+        $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(DISTINCT no_rawat) as count FROM kamar_inap WHERE tgl_keluar='0000-00-00' AND jam_keluar='00-00-00'");
         $query->execute();
         $count = $query->fetchColumn();
         return $count;
@@ -835,7 +980,7 @@ class Admin extends AdminModule
         $stats['poliChart'] = $this->poliChartBatal();
         $stats['poliChartBaru'] = $this->poliChartBaru();
         $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
-        $stats['getCurrentVisities'] = number_format($this->countCurrentVisite($date),0,'','.');
+        $stats['getCurrentVisities'] = number_format($this->countCurrentVisite(),0,'','.');
         $stats['getCurrentVisitiesBatal'] = number_format($this->countCurrentVisiteBatal('Batal'),0,'','.');
         $stats['getCurrentVisitiesBaru'] = number_format($this->countCurrentVisiteBaru(),0,'','.');
         $stats['percentTotal'] = 0;
@@ -843,8 +988,8 @@ class Admin extends AdminModule
             $stats['percentTotal'] = number_format((($this->countVisite()-$this->countVisiteNoRM())/$this->countVisite())*100,0,'','.');
         }
         $stats['percentDays'] = 0;
-        if($this->countCurrentVisite($date) != 0) {
-            $stats['percentDays'] = number_format((($this->countCurrentVisite($date)-$this->countLastCurrentVisite())/$this->countCurrentVisite($date))*100,0,'','.');
+        if($this->countCurrentVisite() != 0) {
+            $stats['percentDays'] = number_format((($this->countCurrentVisite()-$this->countLastCurrentVisite())/$this->countCurrentVisite())*100,0,'','.');
         }
         $stats['percentDaysBatal'] = 0;
         if($this->countCurrentVisiteBatal('Batal') != 0) {
@@ -858,6 +1003,61 @@ class Admin extends AdminModule
       return $this->draw('pendaftaran.html',[
         'settings' => $settings,
         'stats' => $stats,
+      ]);
+    }
+
+    public function anyCaraDaftar()
+    {
+        $date = date('Y-m-d');
+        if(isset($_POST['periode_caradaftar']) && $_POST['periode_caradaftar'] !='')
+            $date = $_POST['periode_caradaftar'];
+        $date2 = date('Y-m-d');
+        if(isset($_POST['periode_caradaftar2']) && $_POST['periode_caradaftar2'] !='')
+            $date2 = $_POST['periode_caradaftar2'];
+        // var_dump($date);die();
+        $this->core->addCSS(url(MODULES.'/manajemen/css/admin/style.css'));
+        $this->core->addJS(url(BASE_DIR.'/assets/jscripts/Chart.bundle.min.js'));
+
+        $settings = htmlspecialchars_array($this->settings('manajemen'));
+        $stats['poliChart'] = $this->poliChartBatal($date);
+        $stats['CaraDaftarChart'] = $this->CaraDaftarChart($date,$date2);
+        $stats['getCurrentCaraDaftarHariIni'] = number_format($this->countCurrentCaraDaftarHariIni($date,$date2),0,'','.');
+        $stats['getCurrentCaraDaftarOffline'] = number_format($this->countCurrentCaraDaftarOffline($date,$date2),0,'','.');
+        $stats['getCurrentCaraDaftarOnline'] = number_format($this->countCurrentCaraDaftarOnline($date,$date2),0,'','.');
+        $stats['getCurrentCaraDaftarJKN'] = number_format($this->countCurrentCaraDaftarJKN($date,$date2),0,'','.');
+        $stats['percentTotal'] = 0;
+        if($this->countVisite($date) != 0) {
+            $stats['percentTotal'] = number_format((($this->countVisite($date)-$this->countVisiteNoRM($date))/$this->countVisite($date))*100,0,'','.');
+        }
+        $stats['percentDays'] = 0;
+        if($this->countCurrentVisiteDashboard($date) != 0) {
+            $stats['percentDays'] = number_format((($this->countCurrentVisiteDashboard($date)-$this->countLastCurrentVisiteDashboard($date))/$this->countCurrentVisiteDashboard($date))*100,0,'','.');
+        }
+        $stats['percentDaysBatal'] = 0;
+        if($this->countCurrentVisiteBatal($date) != 0) {
+            $stats['percentDaysBatal'] = number_format((($this->countCurrentVisiteBatal($date)-$this->countLastCurrentVisiteBatal($date))/$this->countCurrentVisiteBatal($date))*100,0,'','.');
+        }
+        $stats['percentDaysBaru'] = 0;
+        if($this->countCurrentVisiteBaru($date) != 0) {
+            $stats['percentDaysBaru'] = number_format((($this->countCurrentVisiteBaru($date)-$this->countLastCurrentVisiteBaru($date))/$this->countCurrentVisiteBaru($date))*100,0,'','.');
+        }
+
+        $day = array(
+            'Sun' => 'AKHAD',
+            'Mon' => 'SENIN',
+            'Tue' => 'SELASA',
+            'Wed' => 'RABU',
+            'Thu' => 'KAMIS',
+            'Fri' => 'JUMAT',
+            'Sat' => 'SABTU'
+          );
+          $hari=$day[date('D',strtotime($date))];
+
+      return $this->draw('caradaftar.html',[
+        'settings' => $settings,
+        'stats' => $stats,
+        'tgl' => $date,
+        'tgl2' => $date2,
       ]);
     }
 
@@ -902,14 +1102,15 @@ class Admin extends AdminModule
 
         $settings = htmlspecialchars_array($this->settings('manajemen'));
         $stats['poliChart'] = $this->countKamarInap();
-        $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
+        $stats['getVisities'] = number_format($this->countVisiteRanap(),0,'','.');
         $stats['getRanapIn'] = number_format($this->countRanap('tgl_masuk','-'),0,'','.');
-        $stats['getRanapOut'] = number_format($this->countRanap('tgl_keluar',array('APS','Membaik')),0,'','.');
+        $stats['getRanapNow'] = number_format($this->countRanapNow(),0,'','.');
+        $stats['getRanapOut'] = number_format($this->countRanap('tgl_keluar',array('Sehat','Rujuk','APS','+','Meninggal','Sembuh','Membaik','Pulang Paksa','-','Pindah Kamar','Status Belum Lengkap','Atas Persetujuan Dokter','Atas Permintaan Sendiri','Isoman','Lain-lain')),0,'','.');
         $stats['getRanapDead'] = number_format($this->countRanap('tgl_keluar','Meninggal'),0,'','.');
 
         $stats['percentTotal'] = 0;
-        if($this->countVisite() != 0) {
-            $stats['percentTotal'] = number_format((($this->countVisite()-$this->countVisiteNoRM())/$this->countVisite())*100,0,'','.');
+        if($this->countVisiteRanap() != 0) {
+            $stats['percentTotal'] = number_format((($this->countVisiteRanap()-$this->countVisiteNoRM())/$this->countVisiteRanap())*100,0,'','.');
         }
 
         $stats['percentIn'] = 0;
