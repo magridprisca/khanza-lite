@@ -3,10 +3,10 @@ if (!version_compare(PHP_VERSION, '5.5.0', '>=')) {
     exit("mLITE requires at least <b>PHP 5.5</b>");
 }
 
-define('DBHOST', '192.168.1.28');
-define('DBPORT', '3307');
+define('DBHOST', 'localhost');
+define('DBPORT', '3306');
 define('DBUSER', 'root');
-define('DBPASS', 'hospital19#');
+define('DBPASS', '');
 define('DBNAME', 'sik_sept');
 
 // define('DBHOST', 'localhost');
