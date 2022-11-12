@@ -97,10 +97,39 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Laporan Rawat Jalan tgl sampai tgl</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <form class="" action="{?=url([ADMIN,'manajemen','rawatjalan'])?}" method="POST">
+                        <div class="col-lg-3 col-md-3">
+                            <input type="date"  class="form-control" name="rajal_tgl_awal" value="{?= $tglawal ?}"required>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <input type="date"  class="form-control" name="rajal_tgl_akhir" value="{?= $tglakhir ?}"required>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <input type="text"  class="form-control" name="poli" value="{?= $poli ?}"required>
+                        </div>
+                        <div class="col-lg-2 col-md-3">
+                            <input type="submit" name="" class="btn btn-primary btn-block" value="Cari">
+                        </div>
+                        
+                    </form>
+                </div>
+                <canvas id="line-chartcanvas" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">
     $(function () {
-        //line chart
+        //line chart diagnosa
         var ctx = document.getElementById("line-chartcanvas");
         var myChart = new Chart(ctx, {
             type: 'bar',
@@ -114,6 +143,40 @@
                         pointHighlightStroke: "#1e1e2d",
                         pointRadius: 0,
                         data: ["{?= implode('","', $stats.poliChartBaru.visits) ?}"],
+                    }
+                ]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                responsive: true,
+                tooltips: {
+                    mode: 'index',
+                    intersect: false
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                maintainAspectRatio: false
+            }
+        });
+
+        // line chart laporan per periode
+        var ctx2 = document.getElementById("line-chart-dateperiode");
+        var myChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ["{?= implode('","', $stats.poliChart.labels) ?}"],
+                datasets: [{
+                        label: "Pasien",
+                        borderColor: "#34316E",
+                        borderWidth: "2",
+                        backgroundColor: "rgba(30, 30, 45, 0.2)",
+                        pointHighlightStroke: "#1e1e2d",
+                        pointRadius: 0,
+                        data: ["{?= implode('","', $stats.poliChart.visits) ?}"],
                     }
                 ]
             },
