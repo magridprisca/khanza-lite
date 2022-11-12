@@ -166,6 +166,19 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
+    public function countCurrentVisitePendaftaran($date)
+    {
+       
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('tgl_registrasi', $date)
+            ->oneArray();
+
+        return $record['count'];
+    }
+
     public function countCurrentVisiteDashboard($date)
     {
        
@@ -284,6 +297,40 @@ class Admin extends AdminModule
 
         return $record['count'];
     }
+
+    public function countLastCurrentVisitePendaftaran($date)
+    {
+        $date = strtotime($date);
+        $date = strtotime("-1 day", $date);
+        $date = date('Y-m-d', $date);
+
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('tgl_registrasi', $date)
+            ->oneArray();
+
+        return $record['count'];
+    }
+
+    public function countLastCurrentVisiteBatalPendaftaran($date)
+    {
+        $date = strtotime($date);
+        $date = strtotime("-1 day", $date);
+        $date = date('Y-m-d', $date);
+
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('tgl_registrasi', $date)
+            ->where('stts','Batal')
+            ->oneArray();
+
+        return $record['count'];
+    }
+
     public function countLastCurrentVisite()
     {
         $date = date('Y-m-d', strtotime('-1 days'));
@@ -444,6 +491,36 @@ class Admin extends AdminModule
         return $return;
     }
 
+    public function poliChartBatalPendaftaran($date)
+    {
+
+        $query = $this->core->mysql('reg_periksa')
+            ->select([
+              'count'       => 'COUNT(DISTINCT no_rawat)',
+              'nm_poli'     => 'nm_poli',
+            ])
+            ->join('poliklinik', 'poliklinik.kd_poli = reg_periksa.kd_poli')
+            ->where('tgl_registrasi', '=', $date)
+            ->where('stts','Batal')
+            ->group(['reg_periksa.kd_poli'])
+            ->desc('nm_poli');
+
+
+            $data = $query->toArray();
+
+            $return = [
+                'labels'  => [],
+                'visits'  => [],
+            ];
+
+            foreach ($data as $value) {
+                $return['labels'][] = $value['nm_poli'];
+                $return['visits'][] = $value['count'];
+            }
+
+        return $return;
+    }
+
     public function poliChartBaru()
     {
 
@@ -454,6 +531,36 @@ class Admin extends AdminModule
             ])
             ->join('poliklinik', 'poliklinik.kd_poli = reg_periksa.kd_poli')
             ->where('tgl_registrasi', '>=', date('Y-m-d'))
+            ->where('stts_daftar','Baru')
+            ->group(['reg_periksa.kd_poli'])
+            ->desc('nm_poli');
+
+
+            $data = $query->toArray();
+
+            $return = [
+                'labels'  => [],
+                'visits'  => [],
+            ];
+
+            foreach ($data as $value) {
+                $return['labels'][] = $value['nm_poli'];
+                $return['visits'][] = $value['count'];
+            }
+
+        return $return;
+    }
+
+    public function poliChartBaruPendaftaran($date)
+    {
+
+        $query = $this->core->mysql('reg_periksa')
+            ->select([
+              'count'       => 'COUNT(DISTINCT no_rawat)',
+              'nm_poli'     => 'nm_poli',
+            ])
+            ->join('poliklinik', 'poliklinik.kd_poli = reg_periksa.kd_poli')
+            ->where('tgl_registrasi', '=', $date)
             ->where('stts_daftar','Baru')
             ->group(['reg_periksa.kd_poli'])
             ->desc('nm_poli');
@@ -530,6 +637,20 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
+    public function countCurrentVisiteBatalPendaftaran($date)
+    {
+        // $date = date('Y-m-d');
+        $record = $this->core->mysql('reg_periksa')
+            ->select([
+                'count' => 'COUNT(DISTINCT no_rawat)',
+            ])
+            ->where('tgl_registrasi', $date)
+            ->where('stts','Batal')
+            ->oneArray();
+
+        return $record['count'];
+    }
+
     public function countLastCurrentVisiteBatal($stts)
     {
         $date = date('Y-m-d', strtotime('-1 days'));
@@ -544,9 +665,9 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
-    public function countCurrentVisiteBaru()
+    public function countCurrentVisiteBaru($date)
     {
-        $date = date('Y-m-d');
+        // $date = date('Y-m-d');
         $record = $this->core->mysql('reg_periksa')
             ->select([
                 'count' => 'COUNT(DISTINCT no_rawat)',
@@ -622,9 +743,11 @@ class Admin extends AdminModule
         return $record['count'];
     }
 
-    public function countLastCurrentVisiteBaru()
+    public function countLastCurrentVisiteBaru($date)
     {
-        $date = date('Y-m-d', strtotime('-1 days'));
+        $date = strtotime($date);
+        $date = strtotime("-1 day", $date);
+        $date = date('Y-m-d', $date);
         $record = $this->core->mysql('reg_periksa')
             ->select([
                 'count' => 'COUNT(DISTINCT no_rawat)',
@@ -971,38 +1094,56 @@ class Admin extends AdminModule
         return $record['sum'];
     }
 
-    public function getPendaftaran()
+    public function anyPendaftaran()
     {
+
+        $date = date('Y-m-d');
+      if(isset($_POST['periode_pendaftaran']) && $_POST['periode_pendaftaran'] !='')
+        $date = $_POST['periode_pendaftaran'];
+
         $this->core->addCSS(url(MODULES.'/manajemen/css/admin/style.css'));
         $this->core->addJS(url(BASE_DIR.'/assets/jscripts/Chart.bundle.min.js'));
 
         $settings = htmlspecialchars_array($this->settings('manajemen'));
-        $stats['poliChart'] = $this->poliChartBatal();
-        $stats['poliChartBaru'] = $this->poliChartBaru();
+        $stats['poliChartPendaftaran'] = $this->poliChartBatalPendaftaran($date);
+        $stats['poliChartBaruPendaftaran'] = $this->poliChartBaruPendaftaran($date);
         $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
-        $stats['getCurrentVisities'] = number_format($this->countCurrentVisite(),0,'','.');
-        $stats['getCurrentVisitiesBatal'] = number_format($this->countCurrentVisiteBatal('Batal'),0,'','.');
-        $stats['getCurrentVisitiesBaru'] = number_format($this->countCurrentVisiteBaru(),0,'','.');
+        $stats['getCurrentVisities'] = number_format($this->countCurrentVisitePendaftaran($date),0,'','.');
+        $stats['getCurrentVisitiesBatal'] = number_format($this->countCurrentVisiteBatalPendaftaran($date),0,'','.');
+        $stats['getCurrentVisitiesBaru'] = number_format($this->countCurrentVisiteBaru($date),0,'','.');
         $stats['percentTotal'] = 0;
         if($this->countVisite() != 0) {
             $stats['percentTotal'] = number_format((($this->countVisite()-$this->countVisiteNoRM())/$this->countVisite())*100,0,'','.');
         }
         $stats['percentDays'] = 0;
-        if($this->countCurrentVisite() != 0) {
-            $stats['percentDays'] = number_format((($this->countCurrentVisite()-$this->countLastCurrentVisite())/$this->countCurrentVisite())*100,0,'','.');
+        if($this->countCurrentVisitePendaftaran($date) != 0) {
+            $stats['percentDays'] = number_format((($this->countCurrentVisitePendaftaran($date)-$this->countLastCurrentVisitePendaftaran($date))/$this->countCurrentVisitePendaftaran($date))*100,0,'','.');
         }
         $stats['percentDaysBatal'] = 0;
-        if($this->countCurrentVisiteBatal('Batal') != 0) {
-            $stats['percentDaysBatal'] = number_format((($this->countCurrentVisiteBatal('Batal')-$this->countLastCurrentVisiteBatal('Batal'))/$this->countCurrentVisiteBatal('Batal'))*100,0,'','.');
+        if($this->countCurrentVisiteBatalPendaftaran($date) != 0) {
+            $stats['percentDaysBatal'] = number_format((($this->countCurrentVisiteBatalPendaftaran($date)-$this->countLastCurrentVisiteBatalPendaftaran($date))/$this->countCurrentVisiteBatalPendaftaran($date))*100,0,'','.');
         }
         $stats['percentDaysBaru'] = 0;
-        if($this->countCurrentVisiteBaru() != 0) {
-            $stats['percentDaysBaru'] = number_format((($this->countCurrentVisiteBaru()-$this->countLastCurrentVisiteBaru())/$this->countCurrentVisiteBaru())*100,0,'','.');
+        if($this->countCurrentVisiteBaru($date) != 0) {
+            $stats['percentDaysBaru'] = number_format((($this->countCurrentVisiteBaru($date)-$this->countLastCurrentVisiteBaru($date))/$this->countCurrentVisiteBaru($date))*100,0,'','.');
         }
+
+        $day = array(
+            'Sun' => 'AKHAD',
+            'Mon' => 'SENIN',
+            'Tue' => 'SELASA',
+            'Wed' => 'RABU',
+            'Thu' => 'KAMIS',
+            'Fri' => 'JUMAT',
+            'Sat' => 'SABTU'
+          );
+          $hari=$day[date('D',strtotime($date))];
 
       return $this->draw('pendaftaran.html',[
         'settings' => $settings,
         'stats' => $stats,
+        'tgl' => $date,
+        // 'tgl2' => $date2,
       ]);
     }
 
