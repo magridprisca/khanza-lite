@@ -972,10 +972,10 @@ class Admin extends AdminModule
         return $return;
     }
 
-    public function countDx()
+    public function countDx($tgl)
     {
-        $date = date('Y-m-d');
-        $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(diagnosa_pasien.kd_penyakit) as count ,penyakit.nm_penyakit FROM diagnosa_pasien JOIN reg_periksa ON diagnosa_pasien.no_rawat = reg_periksa.no_rawat JOIN penyakit ON diagnosa_pasien.kd_penyakit = penyakit.kd_penyakit WHERE diagnosa_pasien.status ='Ralan' and reg_periksa.tgl_registrasi like '%$date%' GROUP BY diagnosa_pasien.kd_penyakit ORDER BY `count`  DESC Limit 10");
+        // $date = date('Y-m-d');
+        $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(diagnosa_pasien.kd_penyakit) as count ,penyakit.nm_penyakit FROM diagnosa_pasien JOIN reg_periksa ON diagnosa_pasien.no_rawat = reg_periksa.no_rawat JOIN penyakit ON diagnosa_pasien.kd_penyakit = penyakit.kd_penyakit WHERE diagnosa_pasien.status ='Ralan' and reg_periksa.tgl_registrasi like '%$tgl%' GROUP BY diagnosa_pasien.kd_penyakit ORDER BY `count`  DESC Limit 10");
         $query->execute();
 
             $data = $query->fetchAll(\PDO::FETCH_ASSOC);
@@ -1286,6 +1286,10 @@ class Admin extends AdminModule
         $this->core->addCSS(url(MODULES.'/manajemen/css/admin/style.css'));
         $this->core->addJS(url(BASE_DIR.'/assets/jscripts/Chart.bundle.min.js'));
 
+        $tgl = date('Y-m-d');
+        if(isset($_POST['periode_diagnosa']) && $_POST['periode_diagnosa'] !='')
+            $tgl = $_POST['periode_diagnosa'];
+
         $tglAwal = date('Y-m-d');
         if(isset($_POST['rajal_tgl_awal']) && $_POST['rajal_tgl_awal'] !='')
             $tglAwal = $_POST['rajal_tgl_awal'];
@@ -1317,7 +1321,7 @@ class Admin extends AdminModule
             $poli_tahun = $_POST['poli_tahun'];
             
         $settings = htmlspecialchars_array($this->settings('manajemen'));
-        $stats['poliChartBaru'] = $this->countDx();
+        $stats['poliChartBaru'] = $this->countDx($tgl);
         $stats['poliChartPeriode'] = $this->countDxPeriode($tglAwal, $tglAkhir, $poli_periode);
         $stats['poliChartBulan'] = $this->countDxBulan($bulanAwal, $bulanAkhir, $poli_bulan);
         $stats['poliChartTahun'] = $this->countDxTahun($tahunAwal, $tahunAkhir, $poli_tahun);
@@ -1345,6 +1349,7 @@ class Admin extends AdminModule
 
       return $this->draw('rawatjalan.html',[
         'settings' => $settings,
+        'tgl' => $tgl,
         'stats' => $stats,
         'tglawal' => $tglAwal,
         'tglakhir' => $tglAkhir,
