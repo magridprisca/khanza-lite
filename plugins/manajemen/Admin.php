@@ -1021,6 +1021,85 @@ class Admin extends AdminModule
             }
         return $return;
     }
+    public function countDxPeriode($tglAwal, $tglAkhir, $poli_periode)
+    {
+        $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(no_rawat) as count ,poliklinik.nm_poli, reg_periksa.tgl_registrasi
+        FROM poliklinik JOIN reg_periksa 
+        ON poliklinik.kd_poli = reg_periksa.kd_poli 
+        WHERE reg_periksa.status_lanjut ='Ralan' and reg_periksa.kd_poli='$poli_periode' and reg_periksa.tgl_registrasi BETWEEN '$tglAwal' and '$tglAkhir' 
+        GROUP BY reg_periksa.tgl_registrasi, reg_periksa.kd_poli ORDER BY reg_periksa.kd_poli ASC");
+        $query->execute();
+
+            $data = $query->fetchAll(\PDO::FETCH_ASSOC);
+
+            $return = [
+                'labels'  => [],
+                'labels2'  => [],
+                'visits'  => [],
+            ];
+
+            foreach ($data as $value) {
+                $return['labels'][] = $value['tgl_registrasi'];
+                $return['labels2'][] = $value['nm_poli'];
+                $return['visits'][] = $value['count'];
+            }
+
+        return $return;
+    }
+    public function countDxBulan($bulanAwal, $bulanAkhir, $poli_bulan)
+    {
+        $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(no_rawat) as count ,poliklinik.nm_poli, SUBSTR(reg_periksa.tgl_registrasi, 1, 7) AS bulan , reg_periksa.tgl_registrasi
+                FROM poliklinik JOIN reg_periksa 
+                ON poliklinik.kd_poli = reg_periksa.kd_poli 
+                WHERE reg_periksa.status_lanjut ='Ralan' and reg_periksa.kd_poli='$poli_bulan' 
+        -- 				and reg_periksa.tgl_registrasi BETWEEN '2022-01-01' and '2022-03-30' 
+                        and reg_periksa.tgl_registrasi BETWEEN '$bulanAwal-01' AND '$bulanAkhir-31'
+                GROUP BY bulan, reg_periksa.kd_poli ORDER BY reg_periksa.kd_poli ASC");
+        $query->execute();
+
+            $data = $query->fetchAll(\PDO::FETCH_ASSOC);
+
+            $return = [
+                'labels'  => [],
+                'labels2'  => [],
+                'visits'  => [],
+            ];
+
+            foreach ($data as $value) {
+                $return['labels'][] = date("F Y",strtotime($value['bulan']));
+                $return['labels2'][] = $value['nm_poli'];
+                $return['visits'][] = $value['count'];
+            }
+
+        return $return;
+    }
+    public function countDxTahun($tahunAwal, $tahunAkhir, $poli_tahun)
+    {
+        $query = $this->core->mysql()->pdo()->prepare("SELECT COUNT(no_rawat) as count ,poliklinik.nm_poli, SUBSTR(reg_periksa.tgl_registrasi, 1, 4) AS tahun , reg_periksa.tgl_registrasi
+                FROM poliklinik JOIN reg_periksa 
+                ON poliklinik.kd_poli = reg_periksa.kd_poli 
+                WHERE reg_periksa.status_lanjut ='Ralan' and reg_periksa.kd_poli='$poli_tahun' 
+        -- 				and reg_periksa.tgl_registrasi BETWEEN '2022-01-01' and '2022-03-30' 
+                        and reg_periksa.tgl_registrasi BETWEEN '$tahunAwal-01-01' AND '$tahunAkhir-12-31'
+                GROUP BY tahun, reg_periksa.kd_poli ORDER BY reg_periksa.kd_poli ASC");
+        $query->execute();
+
+            $data = $query->fetchAll(\PDO::FETCH_ASSOC);
+
+            $return = [
+                'labels'  => [],
+                'labels2'  => [],
+                'visits'  => [],
+            ];
+
+            foreach ($data as $value) {
+                $return['labels'][] = $value['tahun'];
+                $return['labels2'][] = $value['nm_poli'];
+                $return['visits'][] = $value['count'];
+            }
+
+        return $return;
+    }
 
     public function countPxDrRi()
     {
@@ -1202,13 +1281,47 @@ class Admin extends AdminModule
       ]);
     }
 
-    public function getRawatJalan()
+    public function anyRawatJalan()
     {
         $this->core->addCSS(url(MODULES.'/manajemen/css/admin/style.css'));
         $this->core->addJS(url(BASE_DIR.'/assets/jscripts/Chart.bundle.min.js'));
 
+        $tglAwal = date('Y-m-d');
+        if(isset($_POST['rajal_tgl_awal']) && $_POST['rajal_tgl_awal'] !='')
+            $tglAwal = $_POST['rajal_tgl_awal'];
+        $tglAkhir = date('Y-m-d'); 
+        if(isset($_POST['rajal_tgl_akhir']) && $_POST['rajal_tgl_akhir'] !='')
+            $tglAkhir = $_POST['rajal_tgl_akhir'];
+        $poli_periode = ''; 
+        if(isset($_POST['poli_periode']) && $_POST['poli_periode'] !='')
+            $poli_periode = $_POST['poli_periode'];
+
+        $bulanAwal = date('Y-m');
+        if(isset($_POST['rajal_bln_awal']) && $_POST['rajal_bln_awal'] !='')
+            $bulanAwal = $_POST['rajal_bln_awal'];
+        $bulanAkhir = date('Y-m'); 
+        if(isset($_POST['rajal_bln_akhir']) && $_POST['rajal_bln_akhir'] !='')
+            $bulanAkhir = $_POST['rajal_bln_akhir'];
+        $poli_bulan ='-'; 
+        if(isset($_POST['poli_bulan']) && $_POST['poli_bulan'] !='')
+            $poli_bulan = $_POST['poli_bulan'];
+        
+        $tahunAwal = date('Y');
+        if(isset($_POST['rajal_thn_awal']) && $_POST['rajal_thn_awal'] !='')
+            $tahunAwal = $_POST['rajal_thn_awal'];
+        $tahunAkhir = date('Y'); 
+        if(isset($_POST['rajal_thn_akhir']) && $_POST['rajal_thn_akhir'] !='')
+            $tahunAkhir = $_POST['rajal_thn_akhir'];
+        $poli_tahun ='-'; 
+        if(isset($_POST['poli_tahun']) && $_POST['poli_tahun'] !='')
+            $poli_tahun = $_POST['poli_tahun'];
+            
         $settings = htmlspecialchars_array($this->settings('manajemen'));
         $stats['poliChartBaru'] = $this->countDx();
+        $stats['poliChartPeriode'] = $this->countDxPeriode($tglAwal, $tglAkhir, $poli_periode);
+        $stats['poliChartBulan'] = $this->countDxBulan($bulanAwal, $bulanAkhir, $poli_bulan);
+        $stats['poliChartTahun'] = $this->countDxTahun($tahunAwal, $tahunAkhir, $poli_tahun);
+        // var_dump($stats['poliChartTahun']);die();
         $stats['getVisities'] = number_format($this->countVisite(),0,'','.');
         $stats['getRujuk'] = number_format($this->countCurrentVisiteBatal('Dirujuk'),0,'','.');
         $stats['getRawat'] = number_format($this->countCurrentVisiteBatal('Dirawat'),0,'','.');
@@ -1233,6 +1346,17 @@ class Admin extends AdminModule
       return $this->draw('rawatjalan.html',[
         'settings' => $settings,
         'stats' => $stats,
+        'tglawal' => $tglAwal,
+        'tglakhir' => $tglAkhir,
+        'poli_periode' => $poli_periode,
+        'bulanawal' => $bulanAwal,
+        'bulanakhir' => $bulanAkhir,
+        'poli_bulan' => $poli_bulan,
+        'tahunawal' => $tahunAwal,
+        'tahunakhir' => $tahunAkhir,
+        'poli_tahun' => $poli_tahun,
+        'poli' => $this->core->mysql('poliklinik')->where('status', '1')->group('nm_poli')->toArray(),
+
       ]);
     }
 

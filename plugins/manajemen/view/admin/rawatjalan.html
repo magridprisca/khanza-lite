@@ -101,7 +101,7 @@
     <div class="col-lg-12 col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Laporan Rawat Jalan tgl sampai tgl</h3>
+                <h3 class="panel-title">Laporan Rawat Jalan Harian</h3>
             </div>
             <div class="panel-body">
                 <div class="row">
@@ -113,7 +113,13 @@
                             <input type="date"  class="form-control" name="rajal_tgl_akhir" value="{?= $tglakhir ?}"required>
                         </div>
                         <div class="col-lg-3 col-md-3">
-                            <input type="text"  class="form-control" name="poli" value="{?= $poli ?}"required>
+                            <select class="form-control" name="poli_periode" required>
+                            {loop: $poli}
+                                { $cek = ($poli_periode==$value.kd_poli)}
+                                <option value="{$value.kd_poli}" {if: $poli_periode==$value.kd_poli}selected{/if} >{$value.nm_poli}</option>
+                                <!-- <option value="{$value.kd_poli}" >{$value.nm_poli}</option> -->
+                            {/loop}
+                            </select>
                         </div>
                         <div class="col-lg-2 col-md-3">
                             <input type="submit" name="" class="btn btn-primary btn-block" value="Cari">
@@ -121,7 +127,120 @@
                         
                     </form>
                 </div>
-                <canvas id="line-chartcanvas" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Poli {?=  $stats.poliChartPeriode.labels2[0] ?}</h3>
+            </div>
+            <div class="panel-body">
+                <canvas id="line-chart-dateperiode" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Laporan Rawat Jalan Bulanan</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <form class="" action="{?=url([ADMIN,'manajemen','rawatjalan'])?}" method="POST">
+                        <div class="col-lg-3 col-md-3">
+                            <input type="month"  class="form-control" name="rajal_bln_awal" value="{?= $bulanawal ?}"required>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <input type="month"  class="form-control" name="rajal_bln_akhir" value="{?= $bulanakhir ?}"required>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <select class="form-control" name="poli_bulan" required>
+                            {loop: $poli}
+                                <option value="{$value.kd_poli}" {if: $poli_bulan==$value.kd_poli}selected{/if} >{$value.nm_poli}</option>
+                                <!-- <option value="{$value.kd_poli}" >{$value.nm_poli}</option> -->
+                            {/loop}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-3">
+                            <input type="submit" name="" class="btn btn-primary btn-block" value="Cari">
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Poli {?=  $stats.poliChartBulan.labels2[0] ?}</h3>
+            </div>
+            <div class="panel-body">
+                <canvas id="line-chart-datebulan" height="350"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Laporan Rawat Jalan Tahunan</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <form class="" action="{?=url([ADMIN,'manajemen','rawatjalan'])?}" method="POST">
+                        <div class="col-lg-3 col-md-3">
+                            <input type="number" class="form-control" name="rajal_thn_awal" value="{?= $tahunawal ?}"required>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <input type="number" class="form-control" name="rajal_thn_akhir" value="{?= $tahunakhir ?}"required>
+                            <!-- <select class="form-control" name="rajal_thn_akhir">
+                                {loop: date()}
+                                <option value="{?= $tahunakhir ?}"></option>
+                                {/loop}
+                            </select> -->
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <select class="form-control" name="poli_tahun" required>
+                            {loop: $poli}
+                                <option value="{$value.kd_poli}" {if: $poli_tahun==$value.kd_poli}selected{/if} >{$value.nm_poli}</option>
+                                <!-- <option value="{$value.kd_poli}" >{$value.nm_poli}</option> -->
+                            {/loop}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-3">
+                            <input type="submit" name="" class="btn btn-primary btn-block" value="Cari">
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Poli {?=  $stats.poliChartTahun.labels2[0] ?}</h3>
+            </div>
+            <div class="panel-body">
+                <canvas id="line-chart-datetahun" height="350"></canvas>
             </div>
         </div>
     </div>
@@ -129,6 +248,7 @@
 
 <script type="text/javascript">
     $(function () {
+
         //line chart diagnosa
         var ctx = document.getElementById("line-chartcanvas");
         var myChart = new Chart(ctx, {
@@ -168,15 +288,16 @@
         var myChart = new Chart(ctx2, {
             type: 'bar',
             data: {
-                labels: ["{?= implode('","', $stats.poliChart.labels) ?}"],
+                labels: ["{?= implode('","', $stats.poliChartPeriode.labels) ?}"],
                 datasets: [{
                         label: "Pasien",
+                        // label: ["{?= implode('","', $stats.poliChartPeriode.labels) ?}"],
                         borderColor: "#34316E",
                         borderWidth: "2",
                         backgroundColor: "rgba(30, 30, 45, 0.2)",
                         pointHighlightStroke: "#1e1e2d",
                         pointRadius: 0,
-                        data: ["{?= implode('","', $stats.poliChart.visits) ?}"],
+                        data: ["{?= implode('","', $stats.poliChartPeriode.visits) ?}"],
                     }
                 ]
             },
@@ -184,7 +305,6 @@
                 legend: {
                     display: false
                 },
-                responsive: true,
                 tooltips: {
                     mode: 'index',
                     intersect: false
@@ -193,9 +313,94 @@
                     mode: 'nearest',
                     intersect: true
                 },
+                responsive: true,
                 maintainAspectRatio: false
             }
         });
+
+        
+        // line chart laporan per bulan
+        var ctx2 = document.getElementById("line-chart-datebulan");
+        var myChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ["{?= implode('","', $stats.poliChartBulan.labels) ?}"],
+                datasets: [{
+                        label: "Pasien",
+                        // label: ["{?= implode('","', $stats.poliChartBulan.labels) ?}"],
+                        borderColor: "#34316E",
+                        borderWidth: "2",
+                        backgroundColor: "rgba(30, 30, 45, 0.2)",
+                        pointHighlightStroke: "#1e1e2d",
+                        pointRadius: 0,
+                        data: ["{?= implode('","', $stats.poliChartBulan.visits) ?}"],
+                    }
+                ]
+            },
+            // onAnimationComplete: function () {
+            //     var ctx = this.chart.ctx;
+            //     ctx.font = this.scale.font;
+            //     ctx.fillStyle = this.scale.textColor
+            //     ctx.textAlign = "center";
+            //     ctx.textBaseline = "bottom";
+
+            //     this.datasets.forEach(function (dataset) {
+            //         dataset.bars.forEach(function (bar) {
+            //             ctx.fillText(bar.value, bar.x, bar.y - 5);
+            //         });
+            //     })
+            // },
+            options: {
+                legend: {
+                    display: false,
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+         // line chart laporan per tahun
+         var ctx2 = document.getElementById("line-chart-datetahun");
+        var myChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ["{?= implode('","', $stats.poliChartTahun.labels) ?}"],
+                datasets: [{
+                        label: "Pasien",
+                        borderColor: "#34316E",
+                        borderWidth: "2",
+                        backgroundColor: "rgba(30, 30, 45, 0.2)",
+                        pointHighlightStroke: "#1e1e2d",
+                        pointRadius: 0,
+                        data: ["{?= implode('","', $stats.poliChartTahun.visits) ?}"],
+                    }
+                ]
+            },
+            options: {
+                legend: {
+                    display: false,
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
 
     });
 
